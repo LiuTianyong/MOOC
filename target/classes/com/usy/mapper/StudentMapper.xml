@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.usy.mapper.StudentMapper">
+    <!---->
+    <insert id="instrtIdHp">
+        INSERT INTO student_info (student_id,student_hp) VALUES (#{studentId},#{studentHp});
+   </insert>
+    <!--通过学生id获取学生所选课程-->
+    <select id="queryByuserIdAllcourse" resultType="com.usy.pojo.StudentChoose">
+        select choose.choose_id,choose.student_id,cou.course_name,choose.course_id,choose.class_id from student_choose choose,course_info cou
+        where choose.student_id =#{userId} and choose.course_id = cou.course_id
+    </select>
+    <select id="queryAllcourse" resultType="com.usy.pojo.Course">
+        select couinf.course_name,couinf.course_type,couinf.course_intro,couinf.course_id,teainf.teacher_name,teainf.teacher_id,class.class_name
+        from course_info couinf,student_choose choose,teacher_info teainf,course_class class
+        where choose.student_id =  #{userId} and couinf.course_id=choose.course_id and couinf.teacher_id=teainf.teacher_id and class.course_id=choose.course_id
+    </select>
+    <delete id="deletecourse">
+        delete from student_choose where course_id=#{courseId} and student_id=#{studentId}
+    </delete>
+    <select id="queryByCourseId" resultType="com.usy.pojo.Course">
+        select couinf.course_name,couinf.course_type,couinf.course_intro,couinf.course_id,teainf.teacher_name,teainf.teacher_id,class.class_name
+        from course_info couinf,student_choose choose,teacher_info teainf,course_class class
+        where choose.student_id =  #{studentId}  and couinf.course_id=choose.course_id and couinf.teacher_id=teainf.teacher_id and class.course_id=choose.course_id
+        and couinf.course_name like concat('%',#{courseName},'%' )
+
+    </select>
+
+  <!--获取所有课程 状态为1的课程-->
+    <select id="selectAllCourse" resultMap="forTeacherName">
+        select * from course_info where course_public = 1
+    </select>
+    <resultMap id="forTeacherName" type="com.usy.pojo.Course">
+        <association property="teacherInfo" column="teacher_id" javaType="com.usy.pojo.Teacher" select="getTeacherInfo">
+        </association>
+    </resultMap>
+    <select id="getTeacherInfo" resultType="com.usy.pojo.Teacher">
+        select * from teacher_info where teacher_id=#{teacherId}
+    </select>
+
+    <!--通过课程名检索课程-->
+    <!--**************************************************************-->
+    <select id="searchName" resultMap="forTeacherNameT">
+        select * from course_info where course_name like concat('%',#{courseName},'%' )
+    </select>
+    <resultMap id="forTeacherNameT" type="com.usy.pojo.Course">
+        <association property="teacherInfo" column="teacher_id" javaType="com.usy.pojo.Teacher" select="getTeacherInfoT">
+        </association>
+    </resultMap>
+    <select id="getTeacherInfoT" resultType="com.usy.pojo.Teacher">
+        select * from teacher_info where teacher_id=#{teacherId}
+    </select>
+
+    <!--查看课程内的班级-->
+    <select id="lookClass" resultType="com.usy.pojo.CourseClass">
+        select * from course_class where course_id=#{courseId}
+    </select>
+
+    <!--通过班级名查看课程内的班级-->
+    <select id="findedClass" resultType="com.usy.pojo.CourseClass">
+        select * from course_class where class_name=#{className}
+    </select>
+
+    <!--加入班级-->
+    <insert id="insertInfo" parameterType="com.usy.pojo.StudentChoose">
+        insert into student_choose (student_id, course_id, class_id)
+        values (
+        <if test="studentId != null">
+            #{studentId},
+        </if>
+
+        <if test="courseId != null">
+            #{courseId},
+        </if>
+        <if test="classId != null">
+            #{classId}
+        </if>
+
+        )
+    </insert>
+
+    <!--查询课程的所属班级-->
+    <select id="selectStuCourseClass" resultType="com.usy.pojo.StudentChoose">
+        select * from student_choose where student_id = #{studentId} and course_id = #{courseId} and class_id = #{classId}
+    </select>
+    <!--查询班级已加入班级人数-->
+    <select id="queryByClassId" resultType="java.lang.Integer">
+        select count(*) from student_choose where class_id = #{classId}
+    </select>
+    <!--查询班级总的人数上限-->
+    <select id="queryByClassIdAndCourseId" resultType="java.lang.Integer">
+        select class_amount from course_class where course_id=#{courseId} and class_id = #{classId}
+    </select>
+    <!---->
+    <select id="queryByClassIdAndStudentId" resultType="com.usy.pojo.StudentChoose">
+        select * from  student_choose where class_id = #{classId} and student_id = #{studentId}
+    </select>
+    <select id="select" resultType="com.usy.pojo.Student">
+          select * from student_info where student_id=#{userId}
+    </select>
+    <update id="update">
+        update student_info
+        <set>
+            <if test="studentName != null and studentName != ''">
+                student_name = #{studentName},
+            </if>
+            student_gender  = #{studentGender},
+            <if test="studentPnum != null and studentPnum != ''">
+                student_pnum = #{studentPnum},
+            </if>
+            <if test="studentOrgan != null and studentOrgan!= ''">
+                student_organ = #{studentOrgan},
+            </if>
+            student_prefer = #{studentPrefer}
+        </set>
+        <where>
+            student_id = #{studentId}
+        </where>
+    </update>
+    <update id="updatePassword">
+        update all_user
+        <set>
+            user_password=#{userPassword}
+        </set>
+        <where>
+            user_id = #{userId}
+        </where>
+    </update>
+    <select id="queryStudent" resultType="java.util.Map" parameterType="java.util.Map">
+      select student_info.student_id,student_info.student_name,student_info.student_number,student_choose.class_id
+           ,student_cgrade.cgrade_video,student_cgrade.cgrade_paper,student_cgrade.cgrade_exam,student_cgrade.cgrade_sum
+        from course_class,student_choose,student_info,student_cgrade
+        where course_class.class_id=student_choose.class_id
+        and student_choose.course_id=student_cgrade.course_id
+        and student_choose.student_id=student_info.student_id
+		and student_choose.student_id=student_cgrade.student_id
+        and course_class.class_id=#{classId};
+    </select>
+    <!--根据学生ID删除学生班级表中的学生ID-->
+    <delete id="deleteStudent">
+        delete from student_choose where student_id = #{studentId}
+    </delete>
+    <select id="queryWrongPaper" resultType="java.util.Map" parameterType="java.util.Map">
+        select distinct course_paper.paper_name,course_chap_sub.sub_name,course_chap.chap_name,course_info.course_name,course_paper.paper_id,paper_type,course_chap_sub.sub_id,student_wrong.student_id
+        from student_wrong,course_paper,course_chap_sub,course_chap,course_info
+        where student_wrong.paper_id=course_paper.paper_id
+				and course_paper.sub_id=course_chap_sub.sub_id
+				and course_chap_sub.chap_id=course_chap.chap_id
+				and course_chap.course_id=course_info.course_id
+        and student_wrong.student_id=#{studentId};
+    </select>
+    <select id="queryWrongChoice" resultType="java.util.Map" parameterType="java.util.Map">
+      select course_paper_choice.*,student_answer1.*
+        from student_wrong,course_paper_choice,student_answer1
+        where course_paper_choice.paper_id=#{paperId}
+				and student_answer1.paper_id=#{paperId}
+				and student_wrong.que_id=course_paper_choice.que_id
+				and student_wrong.que_id=student_answer1.que_id
+				and student_wrong.student_id=#{studentId}
+				and student_wrong.student_id=student_answer1.student_id
+        and student_wrong.student_id=#{studentId};
+    </select>
+    <select id="queryWrongBlank" resultType="java.util.Map" parameterType="java.util.Map">
+     select  course_paper_blank.*,student_answer2.*
+        from student_wrong,course_paper_blank,student_answer2
+        where course_paper_blank.paper_id=#{paperId}
+				and student_answer2.paper_id=#{paperId}
+				and student_wrong.que_id=course_paper_blank.que_id
+				and student_wrong.que_id=student_answer2.que_id
+				and student_wrong.student_id=#{studentId}
+				and student_wrong.student_id=student_answer2.student_id
+        and student_wrong.student_id=#{studentId};
+    </select>
+    <select id="queryWrongJudge" resultType="java.util.Map" parameterType="java.util.Map">
+     select course_paper_judge.*,student_answer3.*
+        from student_wrong,course_paper_judge,student_answer3
+        where course_paper_judge.paper_id=#{paperId}
+				and student_answer3.paper_id=#{paperId}
+				and student_wrong.que_id=course_paper_judge.que_id
+				and student_wrong.que_id=student_answer3.que_id
+				and student_wrong.student_id=#{studentId}
+				and student_wrong.student_id=student_answer3.student_id
+        and student_wrong.student_id=#{studentId};
+    </select>
+    <select id="queryWrongDiscuss" resultType="java.util.Map" parameterType="java.util.Map">
+     select  course_paper_discuss.*,student_answer4.*
+        from student_wrong,course_paper_discuss,student_answer4
+        where course_paper_discuss.paper_id=#{paperId}
+				and student_answer4.paper_id=#{paperId}
+				and student_wrong.que_id=course_paper_discuss.que_id
+				and student_wrong.que_id=student_answer4.que_id
+				and student_wrong.student_id=#{studentId}
+				and student_wrong.student_id=student_answer4.student_id
+        and student_wrong.student_id=#{studentId};
+    </select>
+
+    <select id="queryByCourseContent" resultType="com.usy.pojo.Course">
+        select * from course_info where course_id = #{courseId}
+    </select>
+</mapper>

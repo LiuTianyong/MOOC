@@ -1,0 +1,124 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.usy.mapper.AdminMapper">
+
+    <select id="select" resultType="com.usy.pojo.Admin">
+        select * from all_user
+        where user_account = #{userAccount}
+        and user_password = #{userPassword}
+    </select>
+
+    <select id="queryAll" resultType="com.usy.pojo.Admin">
+    select teacher_id,teacher_name,teacher_hp,teacher_gender,teacher_uid,teacher_pnum,teacher_organ,teacher_title,teacher_direct,teacher_intro,teacher_grade,teacher_approve as teacherApprove  from teacher_info order by teacherApprove desc
+
+    </select>
+
+    <select id="queryInfo" resultType="com.usy.pojo.Admin">
+        select teacher_id,teacher_name,teacher_hp,teacher_gender,teacher_uid,teacher_pnum,teacher_organ,teacher_title,teacher_direct,teacher_intro,teacher_grade,teacher_approve as teacherApprove from teacher_info
+        <where>
+            <if test="teacherApprove != null and teacherApprove!= ''">
+                and teacher_approve like concat('%',#{teacherApprove} ,'%')
+            </if>
+        </where>
+    </select>
+
+    <update id="updateInfo">
+        <if test="updateInfo==0">
+            update teacher_info set teacher_approve=0 where teacher_id=#{updateId}
+        </if>
+        <if test="updateInfo==1">
+            update teacher_info set teacher_approve=1 where teacher_id=#{updateId}
+        </if>
+    </update>
+
+
+    <!--查询所有小节评论信息数据-->
+    <select id="queryStuCommentList" resultType="com.usy.pojo.StudentSubcom">
+        select  u.user_type,u.user_account,cou.course_name,sub.com_id,sub.sub_id,sub.user_id,sub.com_content,sub.com_time
+        as comTime from student_subcom sub,all_user u,course_chap_sub csub,course_chap chap,course_info cou
+        where u.user_id = sub.user_id and sub.sub_id = csub.sub_id and csub.chap_id=chap.chap_id and chap.course_id = cou.course_id order by comTime desc
+    </select>
+
+    <!--根据主键删除一条小节评论数据 -->
+    <delete id="deleteByComId">
+        delete from student_subcom where com_id = #{comId}
+    </delete>
+
+    <!--根据时间段显示查询小节评论信息-->
+    <select id="queryByStuTime" resultType="com.usy.pojo.StudentSubcom" >
+        select  u.user_type,u.user_account,cou.course_name,sub.com_id,sub.sub_id,sub.user_id,sub.com_content,sub.com_time
+        as comTime from student_subcom sub,all_user u,course_chap_sub csub,course_chap chap,course_info cou
+        where u.user_id = sub.user_id and sub.sub_id = csub.sub_id and csub.chap_id=chap.chap_id and chap.course_id = cou.course_id
+        <if test="startStuTime != null">
+            and com_time &gt;= #{startStuTime}
+        </if>
+        <if test="endStuTime !=null">
+            and  com_time &lt;= CONCAT('','${endStuTime}',' 00:00:00')
+        </if>
+        order by comTime desc;
+
+        <!--<where>
+            <if test="startStuTime != null">
+                and com_time &gt;= #{startStuTime,jdbcType=DATE}
+            </if>
+            <if test=" endStuTime != null">
+                and com_time &lt;= #{endStuTime,jdbcType=DATE}
+            </if>
+        </where>-->
+    </select>
+
+    <!--查询所以课程评论-->
+    <select id="queryMarkCommentList" resultType="com.usy.pojo.StudentMarkandcom">
+        select stu.student_name,stu.student_number,stu.student_organ,tea.teacher_id,tea.teacher_name,
+        cou.course_name,mark.mark_id,mark.teacher_id,mark.com_content ,mark.student_id,mark.com_time
+        as comTime from student_info stu,teacher_info tea,course_info cou,student_markandcom mark where
+        stu.student_id=mark.student_id and mark.teacher_id = tea.teacher_id and mark.course_id = cou.course_id
+        order by comTime desc;
+    </select>
+
+    <!--通过课程id删除课程评论-->
+    <delete id="deleteByMark">
+        delete from student_markandcom where mark_id = #{markId};
+    </delete>
+
+    <!--通过时间段查询课程评论-->
+    <select id="queryByMarkTime" resultType="com.usy.pojo.StudentMarkandcom" >
+        select stu.student_name,stu.student_number,stu.student_organ,tea.teacher_id,tea.teacher_name,
+        cou.course_name,mark.mark_id,mark.teacher_id,mark.com_content ,mark.student_id,mark.com_time
+        as comTime from student_info stu,teacher_info tea,course_info cou,student_markandcom mark where
+        stu.student_id=mark.student_id and mark.teacher_id = tea.teacher_id and mark.course_id = cou.course_id
+        <if test="startMarkTime != null">
+            and com_time &gt;= #{startMarkTime}
+        </if>
+        <if test="endMarkTime !=null">
+            and  com_time &lt;= CONCAT('','${endMarkTime}',' 00:00:00')
+        </if>
+        <if test="courseName !=null">
+            and  course_name LIKE '%${courseName}%'
+        </if>
+        <if test="courseName !=null">
+            and  course_name LIKE '%${courseName}%'
+        </if>
+        order by comTime desc;
+    </select>
+
+
+
+    <!--
+  &lt;!&ndash; 根据分页数据start 和size查询数据 &ndash;&gt;
+  <select id="findByPage" parameterType="Map">
+      select
+      <include refid="mooc.comment" />
+      from comment
+      <if test="start!=null and size!=null">
+          limit #{start},#{size}
+      </if>
+  </select>
+
+  &lt;!&ndash; 查询用户记录总数 &ndash;&gt;
+  <select id="selectCount" resultType="java.lang.Integer">
+      select count(*) from comment
+  </select>-->
+
+</mapper>

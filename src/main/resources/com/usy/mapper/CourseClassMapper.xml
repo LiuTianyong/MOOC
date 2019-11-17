@@ -1,0 +1,55 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.usy.mapper.CourseClassMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="classId" parameterType="com.usy.pojo.CourseClass">
+        INSERT INTO course_class (course_id,class_name,class_amount)
+        VALUES (#{courseId},#{className},#{classAmount})
+    </insert>
+    <!--根据课程ID查看课程 -->
+    <select id="queryChap" resultType="com.usy.pojo.CourseChap">
+    select * from course_chap where course_id=#{courseId}
+</select>
+    <!--根据课程ID查看班级 -->
+    <select id="getClass" resultType="com.usy.pojo.CourseClass">
+    select * from course_class where course_id=#{courseId}
+</select>
+    <!--根据课程ID删除班级 -->
+    <delete id="deleteClass">
+        delete from course_class where class_id = #{classId}
+    </delete>
+    <!--根据班级ID查看信息 -->
+    <select id="queryClass" resultType="com.usy.pojo.CourseClass">
+        select * from course_class where class_id=#{classId}
+    </select>
+    <update id="updateClass">
+        update course_class
+        <set>
+            <if test="className != null and className != ''">
+                class_name = #{className},
+            </if>
+            class_Amount = #{classAmount}
+        </set>
+        <where>
+            class_id = #{classId}
+        </where>
+    </update>
+    <select id="queryWrongInfo" resultType="java.util.Map" parameterType="java.util.Map">
+        select wrong_know,student_id,count(*) as wrong_sum
+        from student_wrong
+        where student_id
+        in (select student_id from student_choose where class_id =#{classId}) group by wrong_know;
+    </select>
+    <delete id="deleteCourseClass">
+       delete from course_class where course_id=#{courseId}
+   </delete>
+    <select id="queryAllclass" resultType="com.usy.pojo.CourseClass">
+        select courseinfo.course_name,courseclass.class_name,studentchoose.class_id,count(studentchoose.class_id) as classnumber_sum
+        from course_info courseinfo,course_class courseclass,student_choose studentchoose
+        where courseinfo.teacher_id =  #{teacherId} and courseinfo.course_id=courseclass.course_id and studentchoose.class_id=courseclass.class_id
+    </select>
+
+
+</mapper>

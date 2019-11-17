@@ -1,0 +1,268 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.usy.mapper.CoursePaperMapper">
+
+    <!-- 插入一个试卷信息 返回主键(试卷id）-->
+    <insert id="insertCoursePaper" useGeneratedKeys="true" keyProperty="paperId" parameterType="com.usy.pojo.CoursePaper">
+        insert into course_paper (paper_type,paper_name,paper_intro,paper_sum)
+        values (#{paperType},#{paperName},#{paperIntro},#{paperSum})
+    </insert>
+
+    <!-- 插入一份试卷的选择题 -->
+    <insert id="insertPaperChoice">
+        insert into course_paper_choice (que_type,paper_id,que_id,paper_number,choice_que,choice_type,
+        choice_a,choice_b,choice_c,choice_d,choice_e,choice_f,choice_g,choice_h,choice_i,choice_j,
+        choice_answer1,choice_answer2,choice_answer3,choice_answer4,choice_answer5,choice_answer6,
+        choice_answer7,choice_answer8,choice_answer9,choice_answer10,choice_analy,choice_konw,choice_grade)
+        values (#{queType},#{paperId},#{queId},#{paperNumber},#{choiceQue},#{choiceType},
+        #{choiceA},#{choiceB},#{choiceC},#{choiceD},#{choiceE},#{choiceF},#{choiceG},#{choiceH},#{choiceI},#{choiceJ},
+        #{choiceAnswer1},#{choiceAnswer2},#{choiceAnswer3},#{choiceAnswer4},#{choiceAnswer5},#{choiceAnswer6},
+        #{choiceAnswer7},#{choiceAnswer8},#{choiceAnswer9},#{choiceAnswer10},#{choiceAnaly},#{choiceKonw},#{choiceGrade})
+    </insert>
+
+    <!-- 插入一份试卷的填空题 -->
+    <insert id="insertPaperBlank">
+        insert into course_paper_blank (paper_id,paper_number,que_type,blank_que,blank_answer1,
+        blank_answer2,blank_answer3,blank_answer4,blank_answer5,blank_answer6,blank_answer7,blank_answer8,
+        blank_answer9,blank_answer10,blank_analy,blank_know,blank_grade)
+        values (#{paperId},#{paperNumber},#{queType},#{blankQue},#{blankAnswer1},
+        #{blankAnswer2},#{blankAnswer3},#{blankAnswer4},#{blankAnswer5},#{blankAnswer6},#{blankAnswer7},#{blankAnswer8},
+        #{blankAnswer9},#{blankAnswer10},#{blankAnaly},#{blankKnow},#{blankGrade})
+    </insert>
+
+    <!-- 插入一份试卷的判断题  -->
+    <insert id="insertPaperJudge">
+        insert into course_paper_judge (paper_id,paper_number,que_type,judge_que,judge_answer,
+        judge_analy,judge_know,judge_grade)
+        values (#{paperId},#{paperNumber},#{queType},#{judgeQue},#{judgeAnswer},
+        #{judgeAnaly},#{judgeKnow},#{judgeGrade})
+    </insert>
+
+    <!-- 插入一份试卷的简答题  -->
+    <insert id="insertPaperDiscuss">
+        insert into course_paper_discuss (paper_id,paper_number,que_type,discuss_que,discuss_answer,
+        discuss_analy,discuss_know,discuss_grade)
+        values (#{paperId},#{paperNumber},#{queType},#{discussQue},#{discussAnswer},#{discussAnaly},
+        #{discussKnow},#{discussGrade})
+    </insert>
+
+
+
+    <select id="selectPaperChoice" resultType="com.usy.pojo.PaperChoice">
+        select * from course_paper_choice where paper_id = #{paperId}
+    </select>
+
+    <select id="selectPaperJudge" resultType="com.usy.pojo.PaperJudge">
+        select * from course_paper_judge where paper_id = #{paperId}
+    </select>
+
+    <select id="selectPaperBlank" resultType="com.usy.pojo.PaperBlank">
+        select * from course_paper_blank where paper_id = #{paperId}
+    </select>
+
+    <select id="selectPaperDiscuss" resultType="com.usy.pojo.PaperDiscuss">
+        select * from  course_paper_discuss where paper_id = #{paperId}
+    </select>
+
+
+    <!--学生答题部分-->
+    <!--寻找试卷id-->
+    <select id="selectBySubIdPaperId" resultType="java.lang.Integer">
+        select paper_id from course_paper where sub_id = #{subId}
+    </select>
+    <!--寻找试卷类型-->
+    <select id="selectBypaperId" resultType="com.usy.pojo.CoursePaper">
+        select paper_type from course_paper where paper_id = #{paperId}
+    </select>
+    <!--查询学生该试卷的答案表createStuAnswer1-->
+    <select id="selectStuAnswer1" resultType="com.usy.pojo.StudentAnswer1">
+        select * from student_answer1 where paper_id = #{paperId} and student_id = #{studentId}
+    </select>
+    <!--查询学生该试卷的答案表createStuAnswer2-->
+    <select id="selectStuAnswer2" resultType="com.usy.pojo.StudentAnswer2">
+        select * from student_answer2 where paper_id = #{paperId} and student_id = #{studentId}
+    </select>
+    <!--查询学生该试卷的答案表createStuAnswer3-->
+    <select id="selectStuAnswer3" resultType="com.usy.pojo.StudentAnswer3">
+        select * from student_answer3 where paper_id = #{paperId} and student_id = #{studentId}
+    </select>
+    <!--查询学生该试卷的答案表createStuAnswer4-->
+    <select id="selectStuAnswer4" resultType="com.usy.pojo.StudentAnswer4">
+        select * from student_answer4 where paper_id = #{paperId} and student_id = #{studentId}
+    </select>
+    <!--查询课程总成绩中是否有该学生-->
+    <select id="selectCgradePaper" resultType="com.usy.pojo.StudentCgrade">
+         select * from student_cgrade where course_id = #{courseId} and student_id = #{studentId}
+    </select>
+    <!--如果没该学生成绩插入一个-->
+    <insert id="insertCgradePaper">
+        insert into student_cgrade (student_id,course_id,cgrade_video,cgrade_exam) values(#{studentId},#{courseId},0,0)
+    </insert>
+
+    <!--插入学生选择题答案表-->
+    <insert id="insertStuChoiceList">
+        insert into student_answer1 (student_id,paper_id,que_type,que_id,answer_content1,answer_right,answer_grade)
+        values
+        <foreach collection="studentAnswer1" item="item" index= "index" separator =",">
+            (
+            #{item.studentId},
+            #{item.paperId},
+            #{item.queType},
+            #{item.queId},
+            #{item.answerContent1},
+            #{item.answerRight},
+            #{item.answerGrade}
+            )
+        </foreach>
+    </insert>
+
+    <!--插入学生填空题答案表-->
+    <insert id="insertStuBlankList">
+        insert into student_answer2 (student_id,paper_id,que_type,que_id,answer_content1,answer_right,answer_grade)
+        values
+        <foreach collection="studentAnswer2" item="item" index= "index" separator =",">
+            (
+            #{item.studentId},
+            #{item.paperId},
+            #{item.queType},
+            #{item.queId},
+            #{item.answerContent1},
+            #{item.answerRight},
+            #{item.answerGrade}
+            )
+        </foreach>
+    </insert>
+
+    <!--插入学生简答答案表-->
+    <insert id="insertStuDiscussList">
+        insert into student_answer4 (student_id,paper_id,que_type,que_id,answer_content,answer_right,answer_grade)
+        values
+        <foreach collection="studentAnswer4" item="item" index= "index" separator =",">
+            (
+            #{item.studentId},
+            #{item.paperId},
+            #{item.queType},
+            #{item.queId},
+            #{item.answerContent},
+            #{item.answerRight},
+            #{item.answerGrade}
+            )
+        </foreach>
+    </insert>
+
+    <!--插入学生判断答案表-->
+    <insert id="insertStuJudgeList">
+        insert into student_answer3 (student_id,paper_id,que_type,que_id,answer_content,answer_right,answer_grade)
+        values
+        <foreach collection="studentAnswer3" item="item" index= "index" separator =",">
+            (
+            #{item.studentId},
+            #{item.paperId},
+            #{item.queType},
+            #{item.queId},
+            #{item.answerContent},
+            #{item.answerRight},
+            #{item.answerGrade}
+            )
+        </foreach>
+    </insert>
+
+    <!--更新学生选择题答案表-->
+    <update id="updateStuChoiceList" parameterType="java.util.List">
+        <foreach collection="studentAnswer1" item="item" index="index" separator=";">
+            update student_answer1 set answer_content1=#{item.answerContent1,jdbcType =VARCHAR},answer_right=#{item.answerRight,jdbcType=INTEGER},answer_grade=#{item.answerGrade,jdbcType=INTEGER}
+            where student_id = #{item.studentId,jdbcType=INTEGER} and paper_id=#{item.paperId,jdbcType=INTEGER} and que_id=#{item.queId,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+    <!--更新学生填空题答案表-->
+    <update id="updateStuBlankList" parameterType="java.util.List">
+        <foreach collection="studentAnswer2" item="item" index= "index" separator =";">
+            update student_answer2 set answer_content1=#{item.answerContent1},answer_right=#{item.answerRight},answer_grade=#{item.answerGrade}
+            where student_id = #{item.studentId} and paper_id=#{item.paperId} and que_id=#{item.queId}
+        </foreach>
+    </update>
+
+    <!--更新学生简答答案表-->
+    <update id="updateStuDiscussList" parameterType="java.util.List">
+        <foreach collection="studentAnswer4" item="item" index= "index" separator =";">
+            update student_answer4 set answer_content=#{item.answerContent},answer_right=#{item.answerRight},answer_grade=#{item.answerGrade}
+            where student_id = #{item.studentId} and paper_id=#{item.paperId} and que_id=#{item.queId}
+        </foreach>
+    </update>
+
+    <!--更新学生判断答案表-->
+    <update id="updateStuJudgeList" parameterType="java.util.List">
+        <foreach collection="studentAnswer3" item="item" index= "index" separator =";">
+            update student_answer3 set answer_content=#{item.answerContent},answer_right=#{item.answerRight},answer_grade=#{item.answerGrade}
+            where student_id = #{item.studentId} and paper_id=#{item.paperId} and que_id=#{item.queId}
+        </foreach>
+    </update>
+
+    <!--将学生错题插入错题表-->
+    <insert id="insertStudentWrong">
+             insert into student_wrong (student_id,paper_id,que_type,que_id,wrong_know)
+              value (#{studentId},#{paperId},#{queType},#{queId},#{wrongKnow});
+        </insert>
+
+    <!--如果没有该试卷的成绩插入学生试卷得分表-->
+    <insert id="insertStuPgrade">
+        insert into student_pgrade (student_id,paper_id,pgrade_grade) value (#{studentId},#{paperId},(select
+        (select sum(answer_grade) from student_answer1 where student_id = #{studentId} and paper_id =#{paperId}) +
+        (select sum(answer_grade) from student_answer2 where student_id = #{studentId} and paper_id =#{paperId}) +
+        (select sum(answer_grade) from student_answer3 where student_id = #{studentId} and paper_id = #{paperId}) +
+        (select sum(answer_grade) from student_answer4 where student_id =#{studentId} and paper_id = #{paperId}) from DUAL));
+    </insert>
+    <!--如果有该试卷的成绩更新学生试卷得分表-->
+    <update id="updateStuPgrade">
+        UPDATE student_pgrade SET pgrade_grade = (SELECT (SELECT SUM(answer_grade)AS grade1 FROM student_answer1 WHERE student_id = #{studentId} AND paper_id = #{paperId})+(SELECT SUM(answer_grade)AS grade2 FROM student_answer2 WHERE student_id = #{studentId} AND paper_id =#{paperId})+
+       (SELECT SUM(answer_grade)AS grade3 FROM student_answer3 WHERE student_id = #{studentId} AND paper_id = #{paperId})+(SELECT SUM(answer_grade)AS grade4 FROM student_answer4 WHERE student_id = #{studentId} AND paper_id =#{paperId}) FROM DUAL) WHERE student_id = #{studentId} AND paper_id = #{paperId};
+    </update>
+    <!--更新课程的总成绩的paper部分-->
+    <update id="updateCgradePaper">
+        update student_cgrade set cgrade_paper =((select sum(pgrade_grade) from student_pgrade where student_id = #{studentId}
+        and paper_id = any(select paper_id from course_paper where sub_id = (select sub_id from course_chap_sub
+        where chap_id =(select chap_id from course_chap where course_id =#{courseId})) and paper_type = '1' or '2')))*100/(select course_gsum from course_info where course_id = #{courseId})
+        where student_id =#{studentId} and course_id = #{courseId};
+    </update>
+    <!--更新课程的总成绩的Exam部分-->
+    <update id="updateCgradeExam">
+       update student_cgrade set cgrade_exam = (select pgrade_grade from student_pgrade where student_id =  #{studentId}
+       and paper_id = (select paper_id from course_paper where sub_id = ANY(select sub_id from course_chap_sub
+       where chap_id = ANY(select chap_id from course_chap where course_id = #{courseId})) and paper_type = '3'))*100/(
+       select paper_sum from course_paper where paper_id = (select paper_id from course_paper
+       where sub_id = ANY(select sub_id from course_chap_sub where chap_id = ANY(
+       select chap_id from course_chap where course_id = #{courseId})) and paper_type = '3'))
+       where student_id =  #{studentId} and course_id = #{courseId};
+    </update>
+
+    <!--更新总成绩-->
+    <update id="updateStuCgradeSum">
+        update student_cgrade set cgrade_sum = cgrade_video/100*(select course_vrate from course_info where course_id = #{courseId}) + cgrade_paper/100*(select course_prate from course_info where course_id =#{courseId}) + cgrade_exam/100*(select course_erate from course_info where course_id =#{courseId});
+    </update>
+
+
+    <!--列出简答题答案-->
+    <select id="correctionanswer4" resultType="com.usy.pojo.StudentAnswer4">
+        select ans4.answer_id,ans4.answer_grade,stuinf.student_name,ans4.que_id,ans4.answer_content,ans4.student_id,ans4.paper_id,discuss.discuss_que
+        from student_choose choose,student_info stuinf,student_answer4 ans4,course_class class,course_chap chap,course_chap_sub chapsub,course_paper paper,course_paper_discuss discuss
+        where choose.class_id =  #{classId} and choose.student_id=stuinf.student_id and class.class_id=choose.class_id and class.course_id=chap.course_id
+        and chap.chap_id=chapsub.chap_id and chapsub.sub_id=paper.sub_id and paper.paper_id=ans4.paper_id and choose.student_id=ans4.student_id and discuss.paper_id=ans4.paper_id
+        and discuss.que_id=ans4.que_id
+
+    </select>
+
+
+
+    <update id="setGradeBatch"  parameterType="java.util.List">
+        <foreach collection="studentAnswers" item="item" separator=";">
+            update student_answer4
+            set answer_grade=#{item.answerGrade,jdbcType=INTEGER}
+            where answer_id=#{item.answerId,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+
+</mapper>

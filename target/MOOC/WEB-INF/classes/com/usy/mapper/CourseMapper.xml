@@ -1,0 +1,130 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.usy.mapper.CourseMapper">
+    <select id="getCourse" resultType="com.usy.pojo.Course">
+        select * from course_info where teacher_id = #{teacherId};
+    </select>
+    <insert id="insertCourse">
+        INSERT INTO course_info (teacher_id,course_name,course_type,course_intro,course_begin,
+        course_end,course_open,course_public,course_check)
+        VALUES (#{teacherId},#{courseName},#{courseType},#{courseIntro},#{courseBegin}
+        ,#{courseEnd},#{courseOpen},#{coursePublic},#{courseCheck});
+    </insert>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="courseId" parameterType="com.usy.pojo.Course">
+        INSERT INTO course_info (teacher_id,course_name,course_type,course_intro,course_begin,
+        course_end,course_open,course_public,course_check)
+        VALUES (#{teacherId},#{courseName},#{courseType},#{courseIntro},#{courseBegin}
+        ,#{courseEnd},#{courseOpen},#{coursePublic},#{courseCheck})
+    </insert>
+
+    <insert id="insertChap">
+        INSERT INTO course_chap (course_id,chap_name,chap_open,chap_begin,chap_end)
+        VALUES (#{courseId},#{chapName},#{chapOpen},#{chapBegin},#{chapEnd});
+    </insert>
+    <insert id="insertSub">
+        INSERT INTO course_chap_sub (chap_id,sub_name,sub_open,sub_ppt,sub_video,sub_know,sub_material)
+        VALUES (#{chapId},#{subName},#{subOpen},#{subPpt},#{subVideo},#{subKnow},#{subMaterial});
+    </insert>
+
+    <update id="updateSub">
+        update course_chap_sub set sub_name=#{subName},sub_open=#{subOpen},sub_ppt=#{subPpt},sub_video=#{subVideo},sub_know=#{subKnow},sub_material=#{subMaterial}
+        where sub_id = #{subId}
+    </update>
+
+    <delete id="deleteBySub">
+        delete from course_chap_sub where sub_id = #{subId}
+    </delete>
+
+    <update id="updateChap">
+        update course_chap set chap_name=#{chapName},chap_open=#{chapOpen},chap_begin=#{chapBegin},chap_end = #{chapEnd}
+        where chap_id = #{chapId}
+    </update>
+
+    <select id="queryByChapIdContent" resultType="com.usy.pojo.CourseChap">
+        select * from course_chap where chap_id = #{chapId}
+    </select>
+
+    <delete id="deleteByChapId">
+        delete from course_chap where chap_id = #{chapId}
+    </delete>
+    <delete id="deleteByCourseId">
+        delete from course_info where course_id = #{courseId}
+    </delete>
+
+    <!--学生操作课程部分-->
+    <!--===================================================================-->
+    <!--查询所有小节评论信息数据-->
+    <select id="queryStuCommentList" resultType="com.usy.pojo.StudentSubcom">
+       select  u.user_type,u.user_account,sub.com_id,sub.sub_id,sub.user_id,sub.com_content,sub.com_time
+        as comTime from student_subcom sub,all_user u where u.user_id = sub.user_id and sub.sub_id = #{subId} order by comTime desc;
+    </select>
+    <!--查询课程下的所有章节-->
+    <select id="queryByCourseIdAllChap" resultType="com.usy.pojo.CourseChap">
+       SELECT * FROM course_chap WHERE course_id = #{courseId}
+    </select>
+    <!--查询章节下的所有小节-->
+        <select id="queryByCourseIdAllSub" resultType="com.usy.pojo.CourseChapSub">
+           SELECT * FROM course_chap_sub WHERE chap_id = #{chapId}
+        </select>
+    <select id="queryBySubIdContent" resultType="com.usy.pojo.CourseChapSub">
+           SELECT * FROM course_chap_sub WHERE sub_id = #{subId}
+    </select>
+    <!--插入小节评论数据-->
+    <insert id="insertComment">
+        insert into student_subcom (sub_id,user_id,com_content,com_time)
+        value (#{subId},#{userId},#{comContent},#{comTime});
+    </insert>
+
+    <!--查询小节错题-->
+    <select id="queryWrongList" resultType="com.usy.pojo.Studentwrong">
+     select stu.student_id,stu.student_name,stu.student_number,sub.sub_name,wrong.que_type,wrong.wrong_know,count(*) as wrong_sum from course_chap_sub sub,student_wrong wrong,course_paper pap
+    ,student_info stu where wrong.student_id = #{studentId} and pap.paper_id = wrong.paper_id and #{subId} = pap.sub_id and wrong.student_id =stu.student_id group by wrong_know;
+    </select>
+    <!--查询章节错题-->
+    <select id="queryWrongListByChap" resultType="com.usy.pojo.Studentwrong">
+         select stu.student_id,stu.student_name,stu.student_number,sub.sub_name,wrong.que_type,wrong.wrong_know,count(*)
+         as wrong_sum from course_chap_sub sub,student_wrong wrong,course_paper pap,student_info stu where wrong.student_id = #{studentId}
+         and pap.paper_id = wrong.paper_id and sub.sub_id = pap.sub_id and sub.chap_id = #{chapId} and wrong.student_id =stu.student_id group by wrong_know;
+    </select>
+    <!--查询课程错题情况-->
+    <select id="queryWrongListByCourse" resultType="com.usy.pojo.Studentwrong">
+         select stu.student_id,stu.student_name,stu.student_number,sub.sub_name,wrong.que_type,wrong.wrong_know,count(*)
+         as wrong_sum from course_chap_sub sub,student_wrong wrong,course_paper pap,student_info stu,course_chap chap where wrong.student_id =  #{studentId}
+         and pap.paper_id = wrong.paper_id and sub.sub_id = pap.sub_id and sub.chap_id = chap.chap_id and chap.course_id =  #{courseId} and wrong.student_id =stu.student_id group by wrong_know;
+    </select>
+    <!--查询课程总视频观看情况-->
+    <select id="queryVideoAllProgress" resultType="com.usy.pojo.StudentVideo">
+         select stu.student_id,stu.student_name,stu.student_number,sub.sub_name,chap.chap_name,video.video_status
+         as video_status from course_chap_sub sub,student_video video,student_info stu,course_chap chap where video.student_id = #{studentId}
+         and sub.sub_id = video.sub_id and sub.chap_id = chap.chap_id and chap.course_id =  #{courseId} and video.student_id =stu.student_id;
+    </select>
+    <!--查询课程试卷得分情况-->
+    <select id="queryStudentPgradesList" resultType="com.usy.pojo.StudentPgrade">
+            select stu.student_id,stu.student_name,stu.student_number,sub.sub_name,chap.chap_name,paper.paper_type,pgrade.pgrade_grade
+            as pgrade_grade from course_chap_sub sub,student_pgrade pgrade,student_info stu,course_chap chap,course_paper paper where pgrade.student_id = #{studentId}
+            and paper.paper_id = pgrade.paper_id and sub.sub_id = paper.sub_id and sub.chap_id = chap.chap_id and chap.course_id =  #{courseId} and
+           	pgrade.student_id =stu.student_id order by chap.chap_id desc;
+     </select>
+
+    <!--查询课程总成绩情况-->
+    <select id="queryStudentCgradesList" resultType="com.usy.pojo.StudentCgrade">
+              select stu.student_id,stu.student_name,stu.student_number,cgrade.cgrade_video,cgrade.cgrade_paper,cgrade.cgrade_exam,cgrade.cgrade_sum
+              from student_info stu,student_cgrade cgrade where cgrade.student_id =#{studentId}
+              and cgrade.course_id = #{courseId} and cgrade.student_id =stu.student_id;
+    </select>
+    <update id="updateOpenCourse">
+        update course_info
+        set course_open=1
+        where
+        course_id=#{courseId}
+    </update>
+    <update id="updateCloseCourse">
+        update course_info
+        set course_open=0
+        where
+        course_id=#{courseId}
+    </update>
+</mapper>
